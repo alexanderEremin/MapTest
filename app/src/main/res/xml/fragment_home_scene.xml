@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ConstraintSet
+        android:id="@+id/bottom">
+        <Constraint
+            android:id="@+id/scene"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="500dp"
+            android:elevation="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </ConstraintSet>
+    <!-- Направление движения -->
+    <ConstraintSet
+        android:id="@+id/top"
+        app:deriveConstraintsFrom="@id/bottom">
+        <Constraint
+            android:id="@+id/scene"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_marginTop="70dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.7" />
+    </ConstraintSet>
+    <!--  Анимация -->
+    <Transition
+        app:constraintSetStart="@+id/bottom"
+        app:constraintSetEnd="@id/top"
+        android:id="@+id/to_top"
+        app:duration="300">
+        <OnSwipe
+            app:dragDirection="dragUp"
+            app:onTouchUp="autoComplete"
+            app:touchAnchorId="@+id/scene"
+            app:touchAnchorSide="top"
+            app:touchRegionId="@id/scene" />
+    </Transition>
+
+    <Transition
+        app:constraintSetStart="@+id/top"
+        app:constraintSetEnd="@id/bottom"
+        android:id="@+id/to_bottom"
+        app:duration="300">
+        <OnSwipe
+            app:dragDirection="dragUp"
+            app:onTouchUp="autoComplete"
+            app:touchAnchorId="@+id/scene"
+            app:touchAnchorSide="top"
+            app:touchRegionId="@id/scene" />
+    </Transition>
+</MotionScene>
