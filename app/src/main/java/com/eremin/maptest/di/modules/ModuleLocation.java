@@ -2,10 +2,13 @@ package com.eremin.maptest.di.modules;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.widget.Toast;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,15 +26,8 @@ public class ModuleLocation implements LocationListener {
     public Observable<Location> getLocation(Context context) {
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         locationData();
-        boolean enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         return Observable.interval(1000, TimeUnit.MILLISECONDS).create(subscriber -> {
-            if(enabled){
-                subscriber.onNext(mLocation);
-            }else {
-                /**
-                 * TODO Запустить intent для включения GPS
-                 */
-            }
+            subscriber.onNext(mLocation);
         });
     }
     @SuppressLint("MissingPermission")
@@ -62,7 +58,6 @@ public class ModuleLocation implements LocationListener {
     @SuppressLint("MissingPermission")
     @Override
     public void onProviderDisabled(String s) {
-        //startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         mLocation = mLocationManager.getLastKnownLocation(s);
     }
 }

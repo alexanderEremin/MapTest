@@ -7,6 +7,7 @@ public class ConstantManager {
     public static final String DEFAULT_URL_SPUTNIK_SEARCH = "http://whatsthere.maps.sputnik.ru/"; // ?lat=50.7851&lon=46.9099
 
     public static final int REQUEST_CODE_PERMISSIONS_LOCATION = 33;
+    public static final int REQUEST_CODE_SETTING_LOCATION = 34;
 
     public static final String LAST_LATTITUDE = "LAST_LATTITUDE";
     public static final String LAST_LONGITUDE = "LAST_LONGITUDE";

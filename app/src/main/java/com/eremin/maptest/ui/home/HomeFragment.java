@@ -1,8 +1,12 @@
 package com.eremin.maptest.ui.home;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +40,9 @@ import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.core.Observable;
 
 public class HomeFragment extends Fragment implements IClickRecycler {
 
@@ -45,7 +52,7 @@ public class HomeFragment extends Fragment implements IClickRecycler {
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private TextView info;
-    private MaterialButton getPreferences;
+    private MaterialButton getPreferences, setting;
     private MotionLayout motionLayout;
     private MapController mapController;
     private Marker markerUser;
@@ -66,6 +73,8 @@ public class HomeFragment extends Fragment implements IClickRecycler {
         motionLayout = binding.motion;
         getPreferences = binding.preferences;
         getPreferences.setOnClickListener(v -> checkPermissions());
+        setting = binding.setting;
+        setting.setOnClickListener(v -> startIntentSettingGPS());
         recyclerView = binding.listSchools;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
@@ -75,6 +84,12 @@ public class HomeFragment extends Fragment implements IClickRecycler {
         super.onActivityCreated(savedInstanceState);
         initMap();
         checkPermissions();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkLocationSetting();
     }
 
     /**
@@ -87,8 +102,13 @@ public class HomeFragment extends Fragment implements IClickRecycler {
         homeViewModel.getStatusFirstDownloadLoacation().observe(getViewLifecycleOwner(), data ->{
             if(data)
                 progressBar.setVisibility(View.VISIBLE);
-            else
+            else{
                 progressBar.setVisibility(View.GONE);
+            }
+        });
+        homeViewModel.getmErrorDownloadLoacation().observe(getViewLifecycleOwner(), status -> {
+            if(status)
+                homeViewModel.startReseptionLocation();
         });
         homeViewModel.getCoordinates().observe(getViewLifecycleOwner(), data -> {
             addMarkerUser(data.get(ConstantManager.LAST_LATTITUDE), data.get(ConstantManager.LAST_LONGITUDE));
@@ -169,7 +189,6 @@ public class HomeFragment extends Fragment implements IClickRecycler {
      * Если есть - запрашиваем координаты
      */
     private void checkPermissions(){
-        System.out.println("-----------------checkPermissions");
         if (
                 ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -181,11 +200,34 @@ public class HomeFragment extends Fragment implements IClickRecycler {
             permissions.toArray(permissionArray);
             requestPermissions(permissionArray, ConstantManager.REQUEST_CODE_PERMISSIONS_LOCATION);
         }else {
-            initViewModel();
+            checkLocationSetting();
         }
     }
     /**
-     * Обработка разрешений на локацию
+     * Проверка включен ли GPS на устройстве
+     */
+    private void checkLocationSetting(){
+        LocationManager mLocationManager = (LocationManager) requireContext().getSystemService(Context.LOCATION_SERVICE);
+        boolean enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if(!enabled){
+            info.setText("Требуется включить датчик GPS");
+            setting.setVisibility(View.VISIBLE);
+        }else {
+            setting.setVisibility(View.GONE);
+            initViewModel();
+        }
+    }
+
+    /**
+     *  Показать настройки включения GPS
+     */
+    private void startIntentSettingGPS(){
+        Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivityForResult(i, ConstantManager.REQUEST_CODE_SETTING_LOCATION);
+    }
+
+    /**
+     * Обработка разрешений
      * @param requestCode
      * @param permissions
      * @param grantResults
@@ -196,7 +238,7 @@ public class HomeFragment extends Fragment implements IClickRecycler {
         if(requestCode == ConstantManager.REQUEST_CODE_PERMISSIONS_LOCATION){
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
                 getPreferences.setVisibility(View.GONE);
-                initViewModel();
+                checkLocationSetting();
             }else {
                 getPreferences.setVisibility(View.VISIBLE);
                 info.setText("Для работы приложения требуются разрешения на геолокацию");

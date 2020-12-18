@@ -28,6 +28,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class HomeViewModel extends AndroidViewModel {
 
     private MutableLiveData<Boolean> mStatusFirstDownloadLoacation;
+    private MutableLiveData<Boolean> mErrorDownloadLoacation;
     private MutableLiveData<String> mInfo;
     private MutableLiveData<List<Feature>> mListSchools;
     private final MutableLiveData<ArrayMap<String, Double>> coordinates;
@@ -44,6 +45,7 @@ public class HomeViewModel extends AndroidViewModel {
         super(application);
         ((App) application).getAppComponent().injectToViewModel(this);
         mStatusFirstDownloadLoacation = new MutableLiveData<>();
+        mErrorDownloadLoacation = new MutableLiveData<>();
         coordinates = new MutableLiveData<>();
         mInfo = new MutableLiveData<>();
         mListSchools = new MutableLiveData<>();
@@ -68,6 +70,9 @@ public class HomeViewModel extends AndroidViewModel {
     }
     public MutableLiveData<List<Feature>> getListSchools() {
         return mListSchools;
+    }
+    public MutableLiveData<Boolean> getmErrorDownloadLoacation() {
+        return mErrorDownloadLoacation;
     }
 
     /**
@@ -96,10 +101,13 @@ public class HomeViewModel extends AndroidViewModel {
                 .subscribe(next -> {
                     setLattitudeAndLongitude(next.getLatitude(), next.getLongitude());
                     jobCoordinates(lattitude, longitude);
+                    mErrorDownloadLoacation.setValue(false);
                     mStatusFirstDownloadLoacation.setValue(false);
                     loadAddressFromLocation(next.getLatitude(), next.getLongitude());
                 }, error -> {
                     mStatusFirstDownloadLoacation.setValue(false);
+                    mErrorDownloadLoacation.setValue(true);
+                    mInfo.setValue("Ошибка определения местоположения");
                 }));
 
     }
