@@ -1,10 +1,15 @@
 package com.eremin.maptest.ui.home;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.util.ArrayMap;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
@@ -29,8 +34,12 @@ public class HomeViewModel extends AndroidViewModel {
 
     private MutableLiveData<Boolean> mStatusFirstDownloadLoacation;
     private MutableLiveData<Boolean> mErrorDownloadLoacation;
+    // Поле для вывода информации о том какие данные сейчас загружаются или получены
     private MutableLiveData<String> mInfo;
     private MutableLiveData<List<Feature>> mListSchools;
+    // Загружены ли первые координаты местоположения или нет,
+    // если загружены поис школ уже больше не будет производиться
+    private boolean statusFirstLoadLocation = false;
     private final MutableLiveData<ArrayMap<String, Double>> coordinates;
     private double lattitude, longitude;
     private String address;
@@ -41,6 +50,7 @@ public class HomeViewModel extends AndroidViewModel {
     @Inject SharedPreferences sharedPreferences;
     @Inject Observable<Location> locationObservable;
 
+    @SuppressLint("MissingPermission")
     public HomeViewModel(Application application) {
         super(application);
         ((App) application).getAppComponent().injectToViewModel(this);
@@ -103,13 +113,15 @@ public class HomeViewModel extends AndroidViewModel {
                     jobCoordinates(lattitude, longitude);
                     mErrorDownloadLoacation.setValue(false);
                     mStatusFirstDownloadLoacation.setValue(false);
-                    loadAddressFromLocation(next.getLatitude(), next.getLongitude());
+                    if (!statusFirstLoadLocation){
+                        loadAddressFromLocation(next.getLatitude(), next.getLongitude());
+                        statusFirstLoadLocation = true;
+                    }
                 }, error -> {
                     mStatusFirstDownloadLoacation.setValue(false);
                     mErrorDownloadLoacation.setValue(true);
                     mInfo.setValue("Ошибка определения местоположения");
                 }));
-
     }
 
     /**
@@ -138,7 +150,7 @@ public class HomeViewModel extends AndroidViewModel {
         mInfo.setValue("Определяем Ваш адрес");
         mCompositeDisposable.add(mLoadFromSputnik.getAddressUser(lattitude, longitude)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(this::success, this::error));
     }
 
@@ -178,7 +190,7 @@ public class HomeViewModel extends AndroidViewModel {
                                                                 "ru_RU",
                                                                      ConstantManager.API_KEY_YANDEX)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(this::successListSchool, this::errorListSchool));
     }
 

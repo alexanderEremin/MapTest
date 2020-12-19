@@ -10,7 +10,6 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -38,11 +37,10 @@ import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import io.reactivex.rxjava3.core.Observable;
 
 public class HomeFragment extends Fragment implements IClickRecycler {
 
@@ -111,7 +109,11 @@ public class HomeFragment extends Fragment implements IClickRecycler {
                 homeViewModel.startReseptionLocation();
         });
         homeViewModel.getCoordinates().observe(getViewLifecycleOwner(), data -> {
-            addMarkerUser(data.get(ConstantManager.LAST_LATTITUDE), data.get(ConstantManager.LAST_LONGITUDE));
+            BigDecimal dat_lat = BigDecimal.valueOf(data.get(ConstantManager.LAST_LATTITUDE));
+            BigDecimal dat_lon = BigDecimal.valueOf(data.get(ConstantManager.LAST_LONGITUDE));
+            double res_lat = dat_lat.setScale(5, RoundingMode.HALF_EVEN).doubleValue();
+            double res_lon = dat_lon.setScale(5, RoundingMode.HALF_EVEN).doubleValue();
+            addMarkerUser(res_lat, res_lon);
         });
         homeViewModel.getInfo().observe(getViewLifecycleOwner(), data -> {
             info.setText(data);
@@ -150,7 +152,6 @@ public class HomeFragment extends Fragment implements IClickRecycler {
 
         GeoPoint point = new GeoPoint(lattitude, longitude);
         mapController.animateTo(point);
-        mapController.setZoom(16);
 
         markerUser.setPosition(point);
 
