@@ -6,6 +6,8 @@ public class ConstantManager {
 
     public static final String DEFAULT_URL_SPUTNIK_SEARCH = "http://whatsthere.maps.sputnik.ru/"; // ?lat=50.7851&lon=46.9099
 
+    public static final String DEFAULT_URL_DADATA_SEARCH = "https://suggestions.dadata.ru/suggestions/api/";
+
     public static final int REQUEST_CODE_PERMISSIONS_LOCATION = 33;
     public static final int REQUEST_CODE_SETTING_LOCATION = 34;
 

@@ -2,22 +2,19 @@ package com.eremin.maptest.ui.home;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.util.ArrayMap;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import com.eremin.maptest.App;
 import com.eremin.maptest.data.ConstantManager;
-import com.eremin.maptest.interfaces.IForSputnik;
-import com.eremin.maptest.interfaces.IForYandex;
-import com.eremin.maptest.pojo.sputnikssearsh.Main;
+import com.eremin.maptest.interfaces.retrofit.IForDadata;
+import com.eremin.maptest.interfaces.retrofit.IForSputnik;
+import com.eremin.maptest.interfaces.retrofit.IForYandex;
+import com.eremin.maptest.pojo.dadatasearsh.Main;
 import com.eremin.maptest.pojo.yandexsearch.Feature;
 import com.eremin.maptest.pojo.yandexsearch.MainSearch;
 
@@ -44,6 +41,7 @@ public class HomeViewModel extends AndroidViewModel {
     private double lattitude, longitude;
     private String address;
 
+    @Inject IForDadata mLoadFromDadata;
     @Inject IForSputnik mLoadFromSputnik;
     @Inject IForYandex mLoadFromYandex;
     @Inject CompositeDisposable mCompositeDisposable;
@@ -141,14 +139,14 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     /**
-     * Обработка адреса по координатам
+     * Загрузка адреса по координатам
      * @param lattitude латитуда
      * @param longitude лонтитуда
      */
     private void loadAddressFromLocation(double lattitude, double longitude){
         mStatusFirstDownloadLoacation.setValue(true);
         mInfo.setValue("Определяем Ваш адрес");
-        mCompositeDisposable.add(mLoadFromSputnik.getAddressUser(lattitude, longitude)
+        mCompositeDisposable.add(mLoadFromDadata.getAddressUser(lattitude, longitude, 10)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(this::success, this::error));
@@ -160,7 +158,7 @@ public class HomeViewModel extends AndroidViewModel {
      */
     private void success(Main main) {
         mStatusFirstDownloadLoacation.setValue(false);
-        setAddress(main.getResult().getAddress().get(0).getFeatures().get(0).getProperties().getDisplayName());
+        setAddress(main.getSuggestions().get(0).getValue());
         mInfo.setValue(address);
         loadListSchool(address, lattitude, lattitude);
     }

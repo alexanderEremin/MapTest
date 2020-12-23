@@ -1,8 +1,9 @@
 package com.eremin.maptest.di.modules;
 
 import com.eremin.maptest.data.ConstantManager;
-import com.eremin.maptest.interfaces.IForSputnik;
-import com.eremin.maptest.interfaces.IForYandex;
+import com.eremin.maptest.interfaces.retrofit.IForDadata;
+import com.eremin.maptest.interfaces.retrofit.IForSputnik;
+import com.eremin.maptest.interfaces.retrofit.IForYandex;
 import com.google.gson.Gson;
 
 import dagger.Module;
@@ -23,6 +24,17 @@ public abstract class ModuleRetrofit {
             .build();
 
         return mRetrofit.create(IForSputnik.class);
+    }
+
+    @Provides
+    static IForDadata getRetrofitDadata(Gson gson){
+        Retrofit mRetrofit = new Retrofit.Builder()
+                .baseUrl(ConstantManager.DEFAULT_URL_DADATA_SEARCH)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build();
+
+        return mRetrofit.create(IForDadata.class);
     }
 
     @Provides

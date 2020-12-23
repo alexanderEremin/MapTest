@@ -1,4 +1,4 @@
-package com.eremin.maptest.interfaces;
+package com.eremin.maptest.interfaces.retrofit;
 
 import com.eremin.maptest.pojo.sputnikssearsh.Main;
 import com.eremin.maptest.pojo.yandexsearch.MainSearch;
